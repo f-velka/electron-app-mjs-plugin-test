@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic Import MJS</title>
+</head>
+<body>
+    <h1>Hello</h1>
+    <script>
+        async function fetchDataDefinitions() {
+            return await window.electronAPI.getDataDefinitions();
+        }
+
+        async function fetchMjsFiles() {
+            return await window.electronAPI.getMjsFiles();
+        }
+
+        async function dynamicImportMjsFiles() {
+            const configJson = await fetchDataDefinitions();
+            const config = JSON.parse(configJson);
+            console.log(config);
+
+            const mjsFiles = await fetchMjsFiles();
+            console.log(mjsFiles);
+            const modules = [];
+            for (const file of mjsFiles) {
+                const module = await import(`./plugins/${file}`);
+                console.log(`Imported module:`, module);
+                modules.push(module);
+            }
+
+            const logicMap = new Map();
+            for (const m of modules) {
+                for (const [key, value] of Object.entries(m)) {
+                    logicMap.set(key, value);
+                }
+            }
+
+            const items = [];
+            for (const [itemId, def] of Object.entries(config.items)) {
+                const logicClass = logicMap.get(def.logic);
+                const logic = new logicClass(def.args);
+                items.push([itemId, logic]);
+            }
+
+            for (const [id, logic] of items) {
+                console.log(`${id}: ${logic.getValue()}`);
+            }
+        }
+
+        dynamicImportMjsFiles();
+    </script>
+</body>
+</html>

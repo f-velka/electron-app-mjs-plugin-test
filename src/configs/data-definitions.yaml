@@ -1,0 +1,11 @@
+version: "0.1"
+items:
+  a:
+    logic: TestLogic1
+    args:
+      min: 10
+      max: 20
+  b:
+    logic: TestLogic2
+    args:
+      value: 42
